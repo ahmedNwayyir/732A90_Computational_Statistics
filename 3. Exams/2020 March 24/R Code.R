@@ -1,0 +1,183 @@
+setwd("C:/Users/WizzCon/Desktop")
+
+## Assignment 1
+
+# Target Distribution
+target <- function(c,x){
+  c * sqrt(2 * pi) * exp(-c^2/2*x) * x^(-3/2) * x
+}
+#c <- runif(1,1,10)
+c <- 1
+x0 <- 1:10
+plot(x0, target(c,x0), type = "b", col = "red", ylim = c(0,10))
+
+
+
+# Power_Law
+p <- function(a,t,x){
+  ((a-1) / t) * (x/t)^(-a) * x
+}
+
+
+
+# Because the parameter T_min controls x we will have problem sampling from the 
+# region [0,T_min) to avoid this we can use the expected value of p(x) to replace 
+# the missing values
+
+#a <- runif(1,1.1,10)
+a <- 2
+#t <- runif(1,0,10)
+t <- 3
+x <- t:10
+maj <- function(a,t,x){
+  if(t == 1){
+    y <- p(a,t,x)
+  }
+  
+  else{
+    m <- rep(mean(p(a,t,1:t)),length(1:(t-1)))
+    y <- append(m,p(a,t,x))
+  }
+  c <- 1
+  x0 <- 1:10
+  plot(x0, target(c,x0), type = "b", col = "red", ylim = c(0,10))
+  points(x0, y, type = "b", col = "blue")
+}
+maj(a,t,x)
+
+
+# the majorizing constant can be selected as 1 if we choose a = 1 and t = 1, 
+# meaning we dont need to multiply by c
+
+# for any value of alpha (1,Inf] and values of T_min[2,Inf] p(x) 
+# can work as a majorizing function
+
+library(poweRlaw)
+accept_reject <- function(n,c){
+  R <- 0
+  Y <- vector(length = n)
+  for(i in 1:n){
+    repeat {
+      y <- rplcon(1,3,2)
+      U <- runif(1)
+      h <- target(1,y) / (c * p(2,3,y))
+      if(U <= h){
+        Y[i] <- y
+        break
+      }
+      else{R = R+1}
+    }
+  }
+  return(list(Y=Y, Reject=R))
+}
+
+set.seed(12345)
+Z1 <- accept_reject(n = 2000, c = 1)
+cat("The number of rejections: ",Z1$Reject)
+
+hist(Z1$Y, xlab = "Z", main = "Histogram of Target distribution", breaks = 50)
+
+cat("Mean: ", mean(Z1$Y))
+cat("Variance: ", var(Z1$Y))
+
+
+set.seed(12345)
+Z2 <- accept_reject(n = 2000, c = 2)
+cat("The number of rejections: ",Z2$Reject)
+
+hist(Z2$Y, xlab = "Z", main = "Histogram of Target distribution", breaks = 50)
+
+cat("Mean: ", mean(Z2$Y))
+cat("Variance: ", var(Z2$Y))
+
+
+set.seed(12345)
+Z3 <- accept_reject(n = 2000, c = 3)
+cat("The number of rejections: ",Z3$Reject)
+
+hist(Z3$Y, xlab = "Z", main = "Histogram of Target distribution", breaks = 50)
+
+cat("Mean: ", mean(Z3$Y))
+cat("Variance: ", var(Z3$Y))
+
+
+
+
+## Assignment 2
+
+f <- function(x1,x2){
+  x1^2 + (1/2) * x2^2 + 3
+}
+x1 <- 1:10
+x2 <- 1:10
+z <- outer(x1, x2, f)
+persp(x1,x2,z, theta = 0)
+persp(x1,x2,z, theta = -90)
+
+u   <- Reduce(function(s,r) {s*2+r}, v)
+
+v <- as.numeric(pracma::bits(3))
+a1 <- append(rep(0,30), c(1,1))
+a2 <- append(rep(0,29), c(1,0,0))
+a3 <- append(rep(0,29), c(1,0,1))
+a4 <- append(rep(0,29), c(1,1,0))
+a5 <- append(rep(0,29), c(1,1,1))
+a6 <- append(rep(0,28), c(1,0,0,0))
+a7 <- append(rep(0,28), c(1,0,0,1))
+a8 <- append(rep(0,28), c(1,0,1,0))
+a9 <- append(rep(0,28), c(1,0,1,1))
+a10 <- append(rep(0,28), c(1,1,0,0))
+pop1 <- rbind(a1,a2,a3,a4,a5,a6,a7,a9,a10)
+pop2 <- pop1
+
+y1 <- c()
+x_1 <- c()
+for(i in 1:8){
+  y1[i] <- Reduce(function(s,r) {s*2+r}, pop1[i,])
+  x_1[i] <- (-1)^(pop1[i,1]) * exp(y1[i] *(-1)^(pop1[i,2]))
+}
+
+y2 <- c()
+x_2 <- c()
+for(i in 1:8){
+  y2[i] <- Reduce(function(s,r) {s*2+r}, pop2[i,])
+  x_2[i] <- (-1)^(pop2[i,1]) * exp(y2[i] *(-1)^(pop2[i,2]))
+}
+
+crossover <- function(x,y){
+  (x+y)/2
+}
+
+mutate <- function(x){
+  x^2 %% 30
+}
+
+genetic <- function(maxiter, mutprob){
+  x1 <- 1:10
+  x2 <- 1:10
+  Values <- f(x1,x2)
+  min_val <- Inf
+  for(i in 1:maxiter){
+    parents_1 <- sample(x1, size = 2)
+    parents_2 <- sample(x2, size = 2)
+    
+    victim <- order(Values)[1]
+    
+    kid_1 <- crossover(x = parents_1[1], y = parents_1[2])
+    kid_2 <- crossover(x = parents_2[1], y = parents_2[2])
+    kid_1 <- ifelse(mutprob > runif(1), mutate(kid_1), kid_1)
+    kid_2 <- ifelse(mutprob > runif(1), mutate(kid_2), kid_2)
+    x1[victim] <- kid_1
+    x2[victim] <- kid_2
+    Values <- f(x1,x2)
+    min_val <- min(min_val, min(Values))
+  }
+  list(optimum = min_val, population1 = x1, population2 = x2, Values = Values)
+}
+
+set.seed(12345)
+genetic(maxiter = 100, mutprob = 0.0077)
+
+set.seed(12345)
+genetic(maxiter = 100, mutprob = 0.5)
+

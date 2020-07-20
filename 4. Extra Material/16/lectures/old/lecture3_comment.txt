@@ -1,0 +1,1 @@
+Do not give proof for normal distribution but give a proof for multivariate normal, explain that matrices in cholesky should be lower (upper) triangular

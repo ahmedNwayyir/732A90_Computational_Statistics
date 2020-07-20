@@ -1,0 +1,148 @@
+---
+title: "CS-Lab1-"
+author: "Ahmed Alhasan, Yash Pawal, Mohsen Pirmoradiyan"
+date: "1/26/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+```
+
+## Question 1: Be careful when comparing
+```{r echo=FALSE}
+x1 <- 1/3
+x2 <- 1/4
+if (x1 - x2 == 1/12){
+  print("Subtraction is correct!")
+}else{
+  print("Subtraction is wrong!" )
+}
+
+x1 <- 1
+x2 <- 1/2
+if(x1 - x2 == 1/2){
+  print("Subtraction is correct!")
+}else{
+  print("Subtraction is wrong!")
+}
+```
+A computer number is an exact value of a floating-point number. Given $x$ as a real number $[x]_c$ is the floating-point number closest to $x$. So x is a computer number if and only if $x = [x]_c$. The computer numbers, therefor, do not correspond to the real numbers in a natural way. An integer is exactly represented by a computer fixed-point number, a real number, however, may or may not have an exact representation by a floating-point number.
+x as a real number to be represented by a computer number is rounded to the nearest floating-point number. An important point is that the computer numbers(fixed-pont and floating-point) are finite. Because the numbers are to be represented to a fixed number of bits. The fraction $1/3$ in decimal form is actually 0.333... which is infinitely recurring, hence no exact representation for this real number exist by a computer floating-point. In fact the representation of $1/3$ is a rounded number to the nearest floating-point. The fraction $1/12$ also has the same situation as $1/3$. It recurs infinitely and therefor it can not be accurately represented by a computer number. A rounding error, as a result, will exist in computations containing such fractions. The fractions $1/2$ and $1/4$ are finite numbers and can be represented accurately by a floating-point computer number.
+As a rsult of rounding error discussed above we get a wrong answer for the first comparison. Both sides of the equality are rounded to the nearest floating-point and these nearest floating points are not the same.
+ By rounding these numbers so that they have a finite number of digits after decimal points, we will get a correct result:
+```{r echo=TRUE}
+x1 <- 1/3
+x2 <- 1/4
+if (round((x1 - x2), 2) == round(1/12, 2)){
+  print("Subtraction is correct!")
+}else{
+  print("Subtraction is wrong!" )
+}
+```
+ 
+
+## Question 2: Derivative
+```{r echo=FALSE}
+Derivative <- function(x, e = 1e-15){
+  return(((x+e) - x)/e)
+}
+
+Derivative(1)
+Derivative(100000)
+```
+The true value for the derivative of $f(x) = x$ is $1$. However, the result of this function for $x = 1$ is $1.110223$ and for $x = 100000$ is 0. When $x = 100000$ it is very large compared to $e$ and due to loss of significant figures the two quantities $((x+e) and (-x))$ are equal but with opposite sign values, so we get 0 as the result. In fact the very large value (100000) dominates the statements, so the significant digits of the very small number is lost. In other words loss of significant digits or underflow happens.  
+**Discussion: There is a discussion within group members to name this phenomenon. We wonder if it can be referred to as "Cancelation" or not? One of the member believe in "canceletion" and so to avoid this error happening we should sort the numbers ascending: $10000-10000+1e-15$ so that the smaller number at the end of the terms will not be lost, however, this is not agreed by the other members.One of the other member belives that this happens just because of underflow and cancellation is not the case here and rearrangement should not be implemented since the function definition would be changed.**
+
+When $x = 1$
+
+
+## Question 3: Variance
+```{r echo=FALSE}
+myvar <- function(x){
+  n = length(x)
+  return((sum(x^2) - (1/n * (sum(x)^2)))/(n-1))
+  
+}
+
+x <- rnorm(10000, mean = 1e8, sd = 1)
+
+y = vector(length = length(x))
+Var = vector(length = length(x))
+my = vector(length = length(x))
+
+for (i in 1:10000) {
+  X = x[1:i]
+  Var[i] = var(X)
+  my[i] = myvar(X)
+  y[i] = myvar(X) - var(X)
+}
+
+plot(y)
+```
+Ideally the value of varianve should converge to 1, however for our function it doesn't due to catastrophic cancellation.Therefore, this algorithm may not be regarded as an acceptable approach for computing the variance.
+For the improvement we implement the cramer approach and we used the code provided on lisam by Krsysztof: 
+
+```{r}
+var_YC<-function(v_x){
+## v_x is a numerical vector of length greater than 2
+## this function calculates the sample variance 
+## using the Youngs and Cramer algorithm
+    T <- v_x[1]
+    RSS <- 0
+    n <- length(v_x)
+    for (j in 2:n){
+	T <- T+v_x[j]
+	RSS <- RSS+((j*v_x[j]-T)^2)/(j*(j-1))
+    }
+    RSS / (n-1)
+}
+
+var_YC(x)
+```
+The result from this approach is reasonable. In the first algorithm very similar numbers cancel each other, however in this algorithm the subtractive cancellation is avoided.
+
+
+## Question 4: Linear Algebra
+### Not scaled data:
+```{r echo=FALSE}
+data = read.csv("E:/LiU/2nd Semester/Computational Statistics/Labs/1/tecator.csv")
+x = as.matrix(data[,c(-1,-103)])
+y = as.matrix(data[,103])
+A = t(x) %*% x
+b = t(x) %*% y
+#solve.default(A,b)
+
+cat("Error in solve.default(A): system is computationally singular:\nreciprocal condition number = 7.13971e-17")
+```
+The linear system does not have an answer as the matrix A is singular. This Matrix is not invertible. It can happen because of dependency between some variables,i.e, two or more variables are highly correlated. Ths will end in singularity in which the inverse of the matrix does not exist.
+```{r echo=FALSE}
+data = read.csv("E:/LiU/2nd Semester/Computational Statistics/Labs/1/tecator.csv")
+x = as.matrix(data[,c(-1,-103)])
+y = as.matrix(data[,103])
+A = t(x) %*% x
+b = t(x) %*% y
+cat("The condition number:\n", kappa(A))
+```
+The condition number is very high. If a matrix is singular then its condition number is very large.  
+
+For a well-behaved system $Ax = b$, a small change in b ($b+\delta b$) will cause a relatively small change in $x$($x+\delta x$). It means that if $\delta b$ is small we expect that the resulting solution ($\tilde{x}$) should be close to $x$. Such a system is well-conditioned, that is, if $\|\delta b\| / \|b\|$ is small, then $\|\delta x\| /\|x\|$ is likewise small.
+By definition:
+$$\|\delta x\| / \|x\| \leq \|A\|\|A^{-1}\|\|\delta b\| /\|b\|$$
+condition number with respect to inversion is $\|A\|\|A^{-1}\|$. As the condition number tends to infinity the upper bound of relative change in the solution caused by perturbation $\|\delta b\| / \|b\|$  increases. In other words the system is very sensitive to small changes and thus is very susceptible to roundoff error. We do not want this upper bound to be large, so a large condition number is bad.
+
+In this question the condition number is very high and we may conclude that it is an ill-conditioned matrix.
+
+### Scaling the data set
+```{r echo=FALSE}
+x1 = scale(data[,c(-1,-103)])
+y1 = scale(data[,103])
+A1 = t(x1) %*% x1
+b1 = t(x1) %*% y1
+beta1 = solve(A1) %*% b1
+beta1
+```
+```{r echo=FALSE}
+cat("The condition number:\n", kappa(A1))
+
+```
+When we scale the data the round-off error becomes less significan, even though the new condition number is lower it is not necessarily well-conditioned, but we have lesser perturbation to deal with.

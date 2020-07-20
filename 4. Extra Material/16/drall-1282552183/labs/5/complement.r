@@ -1,0 +1,12 @@
+solve(A,b)
+kappa(A)
+A1<-A;
+b1<-b;
+A1[15,]<-A[15,]*10^14;
+b1[15,]<-b[15,]*10^14;
+kappa(A1)
+R<-chol(A1);
+x0<-solve(A1,b1)
+z<-forwardsolve(t(R),b1);
+x<-backsolve(R,z);
+hist(x-x0);

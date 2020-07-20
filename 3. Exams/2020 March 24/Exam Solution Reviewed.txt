@@ -1,0 +1,24 @@
+10p E
+Q1 6.5p
+Q1.1 2p
+You misinterpreted what 1_{0,infinity}(x) is
+You correctly identified the problem with but using the expectation will not solve it.
+The values of alpha you take could work but could be tricky. There is a small interval
+of them that will work directly. However, given your misinterpretation of 1_{0,infinity}(x)
+it could be difficult for you to find an alpha.	
+
+Q1.2 3.5p
+In your sampling you did not correct for the problem on [0,Tmin] nor make an reference to this.
+
+Q1.3 1p
+The question concerned the c in the target density, you fixed there c=1.
+
+Q2.1 0.5p
+The fact that it is a polynomial is not relevant.
+
+Q2.2+Q2.3 3p
+taking the average is dagerous
+no graphs, you failed to find the optimum (0,0)
+you do not use any information on the location of the minimum
+you do not use the required representation
+

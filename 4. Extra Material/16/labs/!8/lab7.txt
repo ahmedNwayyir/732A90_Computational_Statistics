@@ -1,0 +1,8 @@
+myfun<-function(sh,sc) sum(dgamma(x, sh, scale=sc, log=TRUE));
+
+y<-c()
+for(i in 1:91)
+{
+y[i]<-myfun(10,z[i]);
+}
+plot(z,y)
