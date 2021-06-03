@@ -3,8 +3,6 @@ Linköping University, 2nd semester 2020
 
 ## Intended learning outcomes
 
-After completion of the course the student should be able to:
-
 - account for how computer arithmetics affects statistical computations,
 - develop computer implementations of standard methods for simulating from complex statistical distributions
 - develop computer implementations of commonly used deterministic and stochastic optimization methods in statistics and machine learning
